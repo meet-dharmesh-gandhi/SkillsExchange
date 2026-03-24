@@ -1,0 +1,78 @@
+### Health
+GET http://localhost:9000/health
+
+### Register
+POST http://localhost:9000/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@test.com",
+  "password": "123"
+}
+
+### Login
+POST http://localhost:9000/login
+Content-Type: application/json
+
+{
+  "email": "alice@test.com",
+  "password": "123"
+}
+
+### Add Skill
+POST http://localhost:9000/add-skill
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "skill_id": 1,
+  "proficiency": "Advanced"
+}
+
+### Add New Skill (Skills Table)
+POST http://localhost:9000/add-new-skill
+Content-Type: application/json
+
+{
+  "skill_name": "Photography"
+}
+
+### Request Skill
+POST http://localhost:9000/request-skill
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "skill_id": 2
+}
+
+### Match Users (Procedure)
+POST http://localhost:9000/match-users
+Content-Type: application/json
+
+{}
+
+### Schedule Session
+POST http://localhost:9000/schedule-session
+Content-Type: application/json
+
+{
+  "match_id": 1,
+  "time": "2026-03-24T10:00:00.000Z"
+}
+
+### Rate User (Function + Update)
+POST http://localhost:9000/rate-user
+Content-Type: application/json
+
+{
+  "session_id": 1,
+  "rater_id": 1,
+  "rated_id": 2,
+  "rating": 5,
+  "review": "Great session"
+}
+
+### Get Matches
+GET http://localhost:9000/matches/1
