@@ -11,6 +11,7 @@ import Loader from "@/components/loader/Loader";
 type SessionItem = {
 	session_id: number;
 	match_id: number;
+	requester_id: number;
 	scheduled_time: string;
 	status: string;
 	user1_id: number;
@@ -20,6 +21,7 @@ type SessionItem = {
 	skill1_name: string;
 	skill2_name: string;
 	has_rated?: number;
+	my_rating?: number | null;
 };
 
 export default function SessionsPage() {
@@ -79,12 +81,19 @@ export default function SessionsPage() {
 	const completed = sessions.filter((s) => s.status === "complete");
 	const cancelled = sessions.filter((s) => s.status === "cancel");
 
+	function ratingText(value: number) {
+		return `${"★".repeat(value)}${"☆".repeat(5 - value)}`;
+	}
+
 	function renderSession(s: SessionItem, showActions: boolean, showRate: boolean) {
 		const otherName = s.user1_id === user!.user_id ? s.user2_name : s.user1_name;
 		const otherId = s.user1_id === user!.user_id ? s.user2_id : s.user1_id;
 		const time = new Date(s.scheduled_time).toLocaleString();
 		// Whether this user is the one who needs to accept (they didn't create it)
-		const canAcceptDecline = showActions && s.status === "pending";
+		const canAcceptDecline =
+			showActions && s.status === "pending" && s.requester_id !== user!.user_id;
+		const isRequestSender =
+			showActions && s.status === "pending" && s.requester_id === user!.user_id;
 
 		return (
 			<div key={s.session_id} className="card flex flex-col gap-3">
@@ -136,6 +145,11 @@ export default function SessionsPage() {
 							</button>
 						</>
 					)}
+					{isRequestSender && (
+						<div className="flex flex-1 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-2 text-xs font-semibold text-sky-700">
+							Request sent
+						</div>
+					)}
 					{s.status === "upcoming" && (
 						<button
 							className="btn-sm flex-1"
@@ -146,7 +160,7 @@ export default function SessionsPage() {
 					)}
 					{showRate && s.has_rated === 1 && (
 						<div className="flex flex-1 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-xs font-semibold text-emerald-700">
-							Rating submitted
+							Rated: {ratingText(s.my_rating ?? 0)}
 						</div>
 					)}
 					{showRate && s.has_rated !== 1 && (

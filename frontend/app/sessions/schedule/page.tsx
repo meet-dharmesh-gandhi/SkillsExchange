@@ -51,6 +51,7 @@ function ScheduleForm() {
 		try {
 			await apiPost("/schedule-session", {
 				match_id: Number(matchId),
+				requester_id: user.user_id,
 				time: new Date(dateTime).toISOString(),
 			});
 			showToast("Session scheduled!", "success");

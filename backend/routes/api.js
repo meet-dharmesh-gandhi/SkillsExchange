@@ -325,17 +325,21 @@ router.get("/matches/:userId", async (req, res) => {
 
 router.post("/schedule-session", async (req, res) => {
 	try {
-		const { match_id, time } = req.body;
+		const { match_id, requester_id, time } = req.body;
 		const scheduledTime = new Date(time);
 
 		if (Number.isNaN(scheduledTime.getTime())) {
 			return res.status(400).json({ error: "Invalid time" });
 		}
 
+		if (!match_id || !requester_id) {
+			return res.status(400).json({ error: "match_id and requester_id are required" });
+		}
+
 		await execute(
-			`INSERT INTO sessions (session_id, match_id, scheduled_time, status)
-			 VALUES (sessions_seq.NEXTVAL, :match_id, :scheduled_time, 'pending')`,
-			{ match_id, scheduled_time: scheduledTime },
+			`INSERT INTO sessions (session_id, match_id, requester_id, scheduled_time, status)
+			 VALUES (sessions_seq.NEXTVAL, :match_id, :requester_id, :scheduled_time, 'pending')`,
+			{ match_id, requester_id, scheduled_time: scheduledTime },
 		);
 
 		res.status(201).json({ message: "Session scheduled" });
@@ -351,10 +355,11 @@ router.get("/sessions/:userId", async (req, res) => {
 		const parsedUserId = Number(userId);
 		const result = await execute(
 			`SELECT s.session_id AS "session_id", s.match_id AS "match_id",
-			        s.scheduled_time AS "scheduled_time", s.status AS "status",
+			        s.requester_id AS "requester_id", s.scheduled_time AS "scheduled_time", s.status AS "status",
 			        m.user1_id AS "user1_id", m.user2_id AS "user2_id",
 			        u1.name AS "user1_name", u2.name AS "user2_name",
 			        sk1.skill_name AS "skill1_name", sk2.skill_name AS "skill2_name",
+			        r.rating AS "my_rating",
 			        CASE WHEN r.rating_id IS NULL THEN 0 ELSE 1 END AS "has_rated"
 			 FROM sessions s
 			 JOIN matches m ON s.match_id = m.match_id
