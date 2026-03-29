@@ -33,7 +33,9 @@ h2 {
 	color: #0f172a;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
 	border: 1px solid var(--input-border);
 	background: var(--input-bg);
 	border-radius: 0.7rem;
@@ -45,7 +47,9 @@ input, select, textarea {
 	width: 100%;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
 	outline: none;
 	border-color: #0f766e;
 	box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
@@ -77,9 +81,7 @@ button:active {
 	border-radius: 1rem;
 	border: 1px solid var(--card-border);
 	background: var(--card-bg);
-	box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
 	padding: 1.25rem;
-	backdrop-filter: blur(6px);
 }
 
 /* Toast slide-up animation */
@@ -193,7 +195,7 @@ button:active {
 	padding: 1.5rem;
 	width: 90%;
 	max-width: 28rem;
-	box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+	border: 1px solid #e2e8f0;
 }
 
 /* Button variants */
