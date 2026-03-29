@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import Link from "next/link";
 import Loader from "@/components/loader/Loader";
@@ -32,15 +32,23 @@ export default function UserProfilePage() {
 		if (!loading && !user) router.replace("/login");
 	}, [user, loading, router]);
 
-	useEffect(() => {
+	const fetchProfileData = useCallback(async () => {
 		if (!userId) return;
 		setDataLoading(true);
-		Promise.allSettled([
-			apiGet(`/user/${userId}`).then(setProfile),
-			apiGet(`/user-skills/${userId}`).then(setSkills),
-			apiGet(`/ratings/${userId}`).then(setRatings),
-		]).finally(() => setDataLoading(false));
+		try {
+			await Promise.allSettled([
+				apiGet(`/user/${userId}`).then(setProfile),
+				apiGet(`/user-skills/${userId}`).then(setSkills),
+				apiGet(`/ratings/${userId}`).then(setRatings),
+			]);
+		} finally {
+			setDataLoading(false);
+		}
 	}, [userId]);
+
+	useEffect(() => {
+		if (userId) void fetchProfileData();
+	}, [userId, fetchProfileData]);
 
 	if (loading || dataLoading) {
 		return (

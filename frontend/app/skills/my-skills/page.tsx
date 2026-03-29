@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api";
 import Loader from "@/components/loader/Loader";
 
@@ -33,7 +33,7 @@ export default function MySkillsPage() {
 		if (!loading && !user) router.replace("/login");
 	}, [user, loading, router]);
 
-	async function fetchSkills() {
+	const fetchSkills = useCallback(async () => {
 		if (!user) return;
 		try {
 			const data = await apiGet(`/user-skills/${user.user_id}`);
@@ -41,25 +41,30 @@ export default function MySkillsPage() {
 		} catch {
 			/* empty */
 		}
-	}
+	}, [user]);
 
-	async function fetchAllSkills() {
+	const fetchAllSkills = useCallback(async () => {
 		try {
 			const data = await apiGet("/skills");
 			setAllSkills(data);
 		} catch {
 			/* empty */
 		}
-	}
+	}, []);
+
+	const fetchMySkillsData = useCallback(async () => {
+		if (!user) return;
+		setDataLoading(true);
+		try {
+			await Promise.allSettled([fetchSkills(), fetchAllSkills()]);
+		} finally {
+			setDataLoading(false);
+		}
+	}, [user, fetchAllSkills, fetchSkills]);
 
 	useEffect(() => {
-		if (user) {
-			setDataLoading(true);
-			Promise.allSettled([fetchSkills(), fetchAllSkills()]).finally(() =>
-				setDataLoading(false),
-			);
-		}
-	}, [user]);
+		if (user) void fetchMySkillsData();
+	}, [user, fetchMySkillsData]);
 
 	function openAddModal() {
 		setEditingSkill(null);

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import Link from "next/link";
 import Loader from "@/components/loader/Loader";
@@ -34,15 +34,23 @@ export default function DashboardPage() {
 		if (!loading && !user) router.replace("/login");
 	}, [user, loading, router]);
 
-	useEffect(() => {
+	const fetchDashboardData = useCallback(async () => {
 		if (!user) return;
 		setDataLoading(true);
-		Promise.allSettled([
-			apiGet(`/user-skills/${user.user_id}`).then(setSkills),
-			apiGet(`/user-requests/${user.user_id}`).then(setRequests),
-			apiGet(`/sessions/${user.user_id}`).then(setSessions),
-		]).finally(() => setDataLoading(false));
+		try {
+			await Promise.allSettled([
+				apiGet(`/user-skills/${user.user_id}`).then(setSkills),
+				apiGet(`/user-requests/${user.user_id}`).then(setRequests),
+				apiGet(`/sessions/${user.user_id}`).then(setSessions),
+			]);
+		} finally {
+			setDataLoading(false);
+		}
 	}, [user]);
+
+	useEffect(() => {
+		if (user) void fetchDashboardData();
+	}, [user, fetchDashboardData]);
 
 	if (loading || dataLoading) {
 		return (
