@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPut, ApiError } from "@/lib/api";
 import Link from "next/link";
 import Loader from "@/components/loader/Loader";
@@ -19,6 +19,7 @@ type SessionItem = {
 	user2_name: string;
 	skill1_name: string;
 	skill2_name: string;
+	has_rated?: number;
 };
 
 export default function SessionsPage() {
@@ -33,7 +34,7 @@ export default function SessionsPage() {
 		if (!loading && !user) router.replace("/login");
 	}, [user, loading, router]);
 
-	async function fetchSessions() {
+	const fetchSessions = useCallback(async () => {
 		if (!user) return;
 		setDataLoading(true);
 		try {
@@ -44,11 +45,11 @@ export default function SessionsPage() {
 		} finally {
 			setDataLoading(false);
 		}
-	}
+	}, [user]);
 
 	useEffect(() => {
 		if (user) fetchSessions();
-	}, [user]);
+	}, [user, fetchSessions]);
 
 	async function handleAction(sessionId: number, action: "accept" | "decline" | "complete") {
 		try {
@@ -143,7 +144,12 @@ export default function SessionsPage() {
 							Mark Complete
 						</button>
 					)}
-					{showRate && (
+					{showRate && s.has_rated === 1 && (
+						<div className="flex flex-1 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-xs font-semibold text-emerald-700">
+							Rating submitted
+						</div>
+					)}
+					{showRate && s.has_rated !== 1 && (
 						<button className="btn-sm flex-1" onClick={() => setRateSession(s)}>
 							⭐ Rate
 						</button>

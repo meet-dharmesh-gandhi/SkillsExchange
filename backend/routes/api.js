@@ -348,21 +348,24 @@ router.post("/schedule-session", async (req, res) => {
 router.get("/sessions/:userId", async (req, res) => {
 	try {
 		const { userId } = req.params;
+		const parsedUserId = Number(userId);
 		const result = await execute(
 			`SELECT s.session_id AS "session_id", s.match_id AS "match_id",
 			        s.scheduled_time AS "scheduled_time", s.status AS "status",
 			        m.user1_id AS "user1_id", m.user2_id AS "user2_id",
 			        u1.name AS "user1_name", u2.name AS "user2_name",
-			        sk1.skill_name AS "skill1_name", sk2.skill_name AS "skill2_name"
+			        sk1.skill_name AS "skill1_name", sk2.skill_name AS "skill2_name",
+			        CASE WHEN r.rating_id IS NULL THEN 0 ELSE 1 END AS "has_rated"
 			 FROM sessions s
 			 JOIN matches m ON s.match_id = m.match_id
 			 JOIN users u1 ON m.user1_id = u1.user_id
 			 JOIN users u2 ON m.user2_id = u2.user_id
 			 JOIN skills sk1 ON m.skill1_id = sk1.skill_id
 			 JOIN skills sk2 ON m.skill2_id = sk2.skill_id
+			 LEFT JOIN ratings r ON r.session_id = s.session_id AND r.rater_id = :userId
 			 WHERE m.user1_id = :userId OR m.user2_id = :userId
 			 ORDER BY s.scheduled_time DESC`,
-			{ userId: Number(userId) },
+			{ userId: parsedUserId },
 			{ autoCommit: false },
 		);
 		res.status(200).json(result.rows);
@@ -421,6 +424,18 @@ router.put("/session/:sessionId/complete", async (req, res) => {
 router.post("/rate-user", async (req, res) => {
 	try {
 		const { session_id, rater_id, rated_id, rating, review } = req.body;
+
+		const duplicateCheck = await execute(
+			`SELECT COUNT(*) AS "count"
+			 FROM ratings
+			 WHERE session_id = :session_id AND rater_id = :rater_id`,
+			{ session_id: Number(session_id), rater_id: Number(rater_id) },
+			{ autoCommit: false },
+		);
+
+		if (duplicateCheck.rows[0]?.count > 0) {
+			return res.status(400).json({ error: "Rating already submitted for this session" });
+		}
 
 		await execute(
 			`INSERT INTO ratings (rating_id, session_id, rater_id, rated_id, rating, review)
