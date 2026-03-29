@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 
 export type User = {
 	user_id: number;
@@ -25,15 +25,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		const stored = localStorage.getItem("se_user");
-		if (stored) {
+		async function bootstrapAuth() {
+			const stored = localStorage.getItem("se_user");
+			if (!stored) {
+				setLoading(false);
+				return;
+			}
+
 			try {
-				setUser(JSON.parse(stored));
+				const cachedUser = JSON.parse(stored) as User;
+				setUser(cachedUser);
+
+				// Refresh from DB so rating_avg and other dynamic fields are fresh on reload.
+				const freshUser = (await apiGet(`/user/${cachedUser.user_id}`)) as User;
+				setUser(freshUser);
+				localStorage.setItem("se_user", JSON.stringify(freshUser));
 			} catch {
 				localStorage.removeItem("se_user");
+				setUser(null);
+			} finally {
+				setLoading(false);
 			}
 		}
-		setLoading(false);
+
+		void bootstrapAuth();
 	}, []);
 
 	function persist(u: User) {

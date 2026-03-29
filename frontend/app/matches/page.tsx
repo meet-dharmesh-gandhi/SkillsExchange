@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
@@ -41,7 +41,7 @@ export default function MatchesPage() {
 		if (!loading && !user) router.replace("/login");
 	}, [user, loading, router]);
 
-	async function fetchMatches() {
+	const fetchMatches = useCallback(async () => {
 		if (!user) return;
 		setDataLoading(true);
 		try {
@@ -52,11 +52,11 @@ export default function MatchesPage() {
 		} finally {
 			setDataLoading(false);
 		}
-	}
+	}, [user]);
 
 	useEffect(() => {
 		if (user) fetchMatches();
-	}, [user]);
+	}, [user, fetchMatches]);
 
 	async function runMatchProcedure() {
 		setRunningMatch(true);
@@ -81,6 +81,25 @@ export default function MatchesPage() {
 
 	if (!user) return null;
 
+	// Collapse reciprocal rows (A->B and B->A) that render identically for the current user.
+	const uniqueMatches = Array.from(
+		matches
+			.reduce((acc, m) => {
+				const isUser1 = m.user1_id === user.user_id;
+				const otherId = isUser1 ? m.user2_id : m.user1_id;
+				const theyTeach = isUser1 ? m.skill1_name : m.skill2_name;
+				const youTeach = isUser1 ? m.skill2_name : m.skill1_name;
+				const dedupeKey = `${otherId}::${theyTeach}::${youTeach}`;
+
+				if (!acc.has(dedupeKey)) {
+					acc.set(dedupeKey, m);
+				}
+
+				return acc;
+			}, new Map<string, Match>())
+			.values(),
+	);
+
 	return (
 		<div className="page-container">
 			<div className="page-header flex items-center justify-between">
@@ -89,11 +108,11 @@ export default function MatchesPage() {
 					<p>Users matched for skill exchange</p>
 				</div>
 				<button onClick={runMatchProcedure} disabled={runningMatch}>
-					{runningMatch ? "Matching..." : "🔄 Run Matching"}
+					{runningMatch ? "Matching..." : "Run Matching"}
 				</button>
 			</div>
 
-			{matches.length === 0 ? (
+			{uniqueMatches.length === 0 ? (
 				<div className="empty-state card">
 					<p>
 						No matches yet. Request skills and click &quot;Run Matching&quot; to find
@@ -102,7 +121,7 @@ export default function MatchesPage() {
 				</div>
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{matches.map((m) => {
+					{uniqueMatches.map((m) => {
 						const isUser1 = m.user1_id === user.user_id;
 						const otherName = isUser1 ? m.user2_name : m.user1_name;
 						const otherRating = isUser1 ? m.user2_rating : m.user1_rating;
