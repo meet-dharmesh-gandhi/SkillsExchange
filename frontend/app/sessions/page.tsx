@@ -8,9 +8,16 @@ import { apiGet, apiPut, ApiError } from "@/lib/api";
 import Link from "next/link";
 
 type SessionItem = {
-	session_id: number; match_id: number; scheduled_time: string; status: string;
-	user1_id: number; user2_id: number; user1_name: string; user2_name: string;
-	skill1_name: string; skill2_name: string;
+	session_id: number;
+	match_id: number;
+	scheduled_time: string;
+	status: string;
+	user1_id: number;
+	user2_id: number;
+	user1_name: string;
+	user2_name: string;
+	skill1_name: string;
+	skill2_name: string;
 };
 
 export default function SessionsPage() {
@@ -29,7 +36,9 @@ export default function SessionsPage() {
 		try {
 			const data = await apiGet(`/sessions/${user.user_id}`);
 			setSessions(data);
-		} catch { /* empty */ }
+		} catch {
+			/* empty */
+		}
 	}
 
 	useEffect(() => {
@@ -39,7 +48,10 @@ export default function SessionsPage() {
 	async function handleAction(sessionId: number, action: "accept" | "decline" | "complete") {
 		try {
 			await apiPut(`/session/${sessionId}/${action}`, {});
-			showToast(`Session ${action === "accept" ? "accepted" : action === "decline" ? "declined" : "completed"}!`, "success");
+			showToast(
+				`Session ${action === "accept" ? "accepted" : action === "decline" ? "declined" : "completed"}!`,
+				"success",
+			);
 			fetchSessions();
 		} catch (err) {
 			showToast(err instanceof ApiError ? err.message : "Action failed", "error");
@@ -74,12 +86,17 @@ export default function SessionsPage() {
 							<p className="text-xs text-slate-400">{time} (1 hour)</p>
 						</div>
 					</div>
-					<span className={`badge ${
-						s.status === "upcoming" ? "badge-emerald" :
-						s.status === "pending" ? "badge-amber" :
-						s.status === "complete" ? "badge-teal" :
-						"badge-rose"
-					}`}>
+					<span
+						className={`badge ${
+							s.status === "upcoming"
+								? "badge-emerald"
+								: s.status === "pending"
+									? "badge-amber"
+									: s.status === "complete"
+										? "badge-teal"
+										: "badge-rose"
+						}`}
+					>
 						{s.status}
 					</span>
 				</div>
@@ -91,16 +108,25 @@ export default function SessionsPage() {
 				<div className="flex gap-2">
 					{canAcceptDecline && (
 						<>
-							<button className="btn-sm flex-1" onClick={() => handleAction(s.session_id, "accept")}>
+							<button
+								className="btn-sm flex-1"
+								onClick={() => handleAction(s.session_id, "accept")}
+							>
 								Accept
 							</button>
-							<button className="btn-danger btn-sm flex-1" onClick={() => handleAction(s.session_id, "decline")}>
+							<button
+								className="btn-danger btn-sm flex-1"
+								onClick={() => handleAction(s.session_id, "decline")}
+							>
 								Decline
 							</button>
 						</>
 					)}
 					{s.status === "upcoming" && (
-						<button className="btn-sm flex-1" onClick={() => handleAction(s.session_id, "complete")}>
+						<button
+							className="btn-sm flex-1"
+							onClick={() => handleAction(s.session_id, "complete")}
+						>
 							Mark Complete
 						</button>
 					)}
@@ -199,7 +225,12 @@ export default function SessionsPage() {
 
 // ── Rate Modal (inline component) ──────────────
 
-function RateModal({ session, userId, onClose, onSuccess }: {
+function RateModal({
+	session,
+	userId,
+	onClose,
+	onSuccess,
+}: {
 	session: SessionItem;
 	userId: number;
 	onClose: () => void;
@@ -241,12 +272,15 @@ function RateModal({ session, userId, onClose, onSuccess }: {
 
 				<div className="mb-4">
 					<label className="mb-1 block text-xs font-medium text-slate-600">Rating</label>
-					<div className="flex gap-1">
+					<div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5">
 						{[1, 2, 3, 4, 5].map((star) => (
 							<button
 								key={star}
+								type="button"
+								aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+								aria-pressed={star <= rating}
 								onClick={() => setRating(star)}
-								className={`bg-transparent p-1 text-2xl ${star <= rating ? "text-amber-400" : "text-slate-300"}`}
+								className={`rounded-md bg-transparent! p-1 text-2xl transition-colors hover:bg-transparent! ${star <= rating ? "text-amber-400!" : "text-slate-300!"}`}
 							>
 								★
 							</button>
@@ -255,7 +289,9 @@ function RateModal({ session, userId, onClose, onSuccess }: {
 				</div>
 
 				<div className="mb-4">
-					<label className="mb-1 block text-xs font-medium text-slate-600">Review (optional)</label>
+					<label className="mb-1 block text-xs font-medium text-slate-600">
+						Review (optional)
+					</label>
 					<textarea
 						placeholder="Write a brief review..."
 						value={review}
@@ -265,7 +301,9 @@ function RateModal({ session, userId, onClose, onSuccess }: {
 				</div>
 
 				<div className="flex gap-2">
-					<button className="btn-secondary flex-1" onClick={onClose}>Cancel</button>
+					<button className="btn-secondary flex-1" onClick={onClose}>
+						Cancel
+					</button>
 					<button className="flex-1" onClick={handleSubmit} disabled={submitting}>
 						{submitting ? "Submitting..." : "Submit Rating"}
 					</button>
