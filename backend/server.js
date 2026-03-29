@@ -19,6 +19,16 @@ app.get("/health", (req, res) => {
 	res.send("Server is healthy!");
 });
 
+// Global error-handling middleware for uncaught Oracle errors
+app.use((err, req, res, next) => {
+	console.error("Unhandled error:", err);
+	if (err && err.errorNum && err.errorNum >= 20000 && err.errorNum <= 20999) {
+		const msg = err.message.replace(/^ORA-\d+:\s*/, "");
+		return res.status(400).json({ error: msg });
+	}
+	res.status(500).json({ error: err.message || "Internal server error" });
+});
+
 app.listen(PORT, () => {
 	console.log(`Server listening on port ${PORT}`);
 	oracledb.initOracleClient();
