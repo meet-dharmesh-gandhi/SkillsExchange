@@ -55,19 +55,22 @@ export default function Navbar() {
 						>
 							Skills
 						</button>
-						<div className="invisible absolute left-0 top-full z-20 mt-1 w-44 rounded-xl border border-slate-200 bg-white py-1 opacity-0 transition duration-150 ease-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-							<Link
-								href="/skills/my-skills"
-								className="block px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50 hover:no-underline"
-							>
-								My Skills
-							</Link>
-							<Link
-								href="/skills/browse"
-								className="block px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50 hover:no-underline"
-							>
-								Find Skills
-							</Link>
+						<div className="invisible absolute left-0 top-full z-20 w-44 pt-1 opacity-0 transition duration-150 ease-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+							<div className="absolute left-0 top-0 h-1 w-full" />
+							<div className="rounded-xl border border-slate-200 bg-white py-1">
+								<Link
+									href="/skills/my-skills"
+									className="block px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50 hover:no-underline"
+								>
+									My Skills
+								</Link>
+								<Link
+									href="/skills/browse"
+									className="block px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50 hover:no-underline"
+								>
+									Find Skills
+								</Link>
+							</div>
 						</div>
 					</div>
 
