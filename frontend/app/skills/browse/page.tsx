@@ -5,6 +5,7 @@ import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, ApiError } from "@/lib/api";
+import Loader from "@/components/loader/Loader";
 
 type Skill = { skill_id: number; skill_name: string };
 
@@ -16,6 +17,7 @@ export default function BrowseSkillsPage() {
 	const [skills, setSkills] = useState<Skill[]>([]);
 	const [search, setSearch] = useState("");
 	const [requesting, setRequesting] = useState<number | null>(null);
+	const [dataLoading, setDataLoading] = useState(true);
 
 	useEffect(() => {
 		if (!loading && !user) router.replace("/login");
@@ -26,10 +28,15 @@ export default function BrowseSkillsPage() {
 	}, []);
 
 	async function fetchSkills() {
+		setDataLoading(true);
 		try {
 			const data = await apiGet("/skills");
 			setSkills(data);
-		} catch { /* empty */ }
+		} catch {
+			/* empty */
+		} finally {
+			setDataLoading(false);
+		}
 	}
 
 	async function handleRequest(skillId: number) {
@@ -45,7 +52,15 @@ export default function BrowseSkillsPage() {
 		}
 	}
 
-	if (loading || !user) return null;
+	if (loading || dataLoading) {
+		return (
+			<div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+				<Loader />
+			</div>
+		);
+	}
+
+	if (!user) return null;
 
 	const filtered = skills.filter((s) =>
 		s.skill_name.toLowerCase().includes(search.toLowerCase()),
@@ -75,7 +90,9 @@ export default function BrowseSkillsPage() {
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{filtered.map((s) => (
 						<div key={s.skill_id} className="card flex items-center justify-between">
-							<span className="text-sm font-semibold text-slate-800">{s.skill_name}</span>
+							<span className="text-sm font-semibold text-slate-800">
+								{s.skill_name}
+							</span>
 							<button
 								className="btn-sm"
 								disabled={requesting === s.skill_id}

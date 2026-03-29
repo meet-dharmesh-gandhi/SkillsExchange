@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiGet, apiPut, ApiError } from "@/lib/api";
 import Link from "next/link";
+import Loader from "@/components/loader/Loader";
 
 type SessionItem = {
 	session_id: number;
@@ -26,6 +27,7 @@ export default function SessionsPage() {
 	const router = useRouter();
 	const [sessions, setSessions] = useState<SessionItem[]>([]);
 	const [rateSession, setRateSession] = useState<SessionItem | null>(null);
+	const [dataLoading, setDataLoading] = useState(true);
 
 	useEffect(() => {
 		if (!loading && !user) router.replace("/login");
@@ -33,11 +35,14 @@ export default function SessionsPage() {
 
 	async function fetchSessions() {
 		if (!user) return;
+		setDataLoading(true);
 		try {
 			const data = await apiGet(`/sessions/${user.user_id}`);
 			setSessions(data);
 		} catch {
 			/* empty */
+		} finally {
+			setDataLoading(false);
 		}
 	}
 
@@ -58,7 +63,15 @@ export default function SessionsPage() {
 		}
 	}
 
-	if (loading || !user) return null;
+	if (loading || (user && dataLoading)) {
+		return (
+			<div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+				<Loader />
+			</div>
+		);
+	}
+
+	if (!user) return null;
 
 	const pending = sessions.filter((s) => s.status === "pending");
 	const upcoming = sessions.filter((s) => s.status === "upcoming");

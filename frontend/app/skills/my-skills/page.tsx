@@ -5,6 +5,7 @@ import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api";
+import Loader from "@/components/loader/Loader";
 
 type UserSkill = { id: number; skill_id: number; skill_name: string; proficiency_level: string };
 type Skill = { skill_id: number; skill_name: string };
@@ -26,6 +27,7 @@ export default function MySkillsPage() {
 	const [newSkillName, setNewSkillName] = useState("");
 	const [proficiency, setProficiency] = useState("Beginner");
 	const [isNewSkill, setIsNewSkill] = useState(false);
+	const [dataLoading, setDataLoading] = useState(true);
 
 	useEffect(() => {
 		if (!loading && !user) router.replace("/login");
@@ -36,20 +38,26 @@ export default function MySkillsPage() {
 		try {
 			const data = await apiGet(`/user-skills/${user.user_id}`);
 			setSkills(data);
-		} catch { /* empty */ }
+		} catch {
+			/* empty */
+		}
 	}
 
 	async function fetchAllSkills() {
 		try {
 			const data = await apiGet("/skills");
 			setAllSkills(data);
-		} catch { /* empty */ }
+		} catch {
+			/* empty */
+		}
 	}
 
 	useEffect(() => {
 		if (user) {
-			fetchSkills();
-			fetchAllSkills();
+			setDataLoading(true);
+			Promise.allSettled([fetchSkills(), fetchAllSkills()]).finally(() =>
+				setDataLoading(false),
+			);
 		}
 	}, [user]);
 
@@ -110,7 +118,15 @@ export default function MySkillsPage() {
 		}
 	}
 
-	if (loading || !user) return null;
+	if (loading || (user && dataLoading)) {
+		return (
+			<div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+				<Loader />
+			</div>
+		);
+	}
+
+	if (!user) return null;
 
 	return (
 		<div className="page-container">
@@ -135,15 +151,25 @@ export default function MySkillsPage() {
 						<div key={s.id} className="card flex flex-col gap-3">
 							<div className="flex items-start justify-between">
 								<div>
-									<h3 className="text-base font-semibold text-slate-800">{s.skill_name}</h3>
-									<span className="badge badge-teal mt-1">{s.proficiency_level}</span>
+									<h3 className="text-base font-semibold text-slate-800">
+										{s.skill_name}
+									</h3>
+									<span className="badge badge-teal mt-1">
+										{s.proficiency_level}
+									</span>
 								</div>
 							</div>
 							<div className="flex gap-2">
-								<button className="btn-secondary btn-sm flex-1" onClick={() => openEditModal(s)}>
+								<button
+									className="btn-secondary btn-sm flex-1"
+									onClick={() => openEditModal(s)}
+								>
 									Edit
 								</button>
-								<button className="btn-danger btn-sm flex-1" onClick={() => handleDelete(s)}>
+								<button
+									className="btn-danger btn-sm flex-1"
+									onClick={() => handleDelete(s)}
+								>
 									Delete
 								</button>
 							</div>
@@ -203,15 +229,23 @@ export default function MySkillsPage() {
 							<label className="mb-1 block text-xs font-medium text-slate-600">
 								Proficiency Level
 							</label>
-							<select value={proficiency} onChange={(e) => setProficiency(e.target.value)}>
+							<select
+								value={proficiency}
+								onChange={(e) => setProficiency(e.target.value)}
+							>
 								{PROFICIENCY_LEVELS.map((p) => (
-									<option key={p} value={p}>{p}</option>
+									<option key={p} value={p}>
+										{p}
+									</option>
 								))}
 							</select>
 						</div>
 
 						<div className="flex gap-2">
-							<button className="btn-secondary flex-1" onClick={() => setShowModal(false)}>
+							<button
+								className="btn-secondary flex-1"
+								onClick={() => setShowModal(false)}
+							>
 								Cancel
 							</button>
 							<button className="flex-1" onClick={handleSave}>

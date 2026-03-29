@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import Link from "next/link";
+import Loader from "@/components/loader/Loader";
 
 type UserProfile = { user_id: number; name: string; email: string; rating_avg: number | null };
 type UserSkill = { id: number; skill_id: number; skill_name: string; proficiency_level: string };
@@ -25,6 +26,7 @@ export default function UserProfilePage() {
 	const [profile, setProfile] = useState<UserProfile | null>(null);
 	const [skills, setSkills] = useState<UserSkill[]>([]);
 	const [ratings, setRatings] = useState<Rating[]>([]);
+	const [dataLoading, setDataLoading] = useState(true);
 
 	useEffect(() => {
 		if (!loading && !user) router.replace("/login");
@@ -32,12 +34,24 @@ export default function UserProfilePage() {
 
 	useEffect(() => {
 		if (!userId) return;
-		apiGet(`/user/${userId}`).then(setProfile).catch(() => {});
-		apiGet(`/user-skills/${userId}`).then(setSkills).catch(() => {});
-		apiGet(`/ratings/${userId}`).then(setRatings).catch(() => {});
+		setDataLoading(true);
+		Promise.allSettled([
+			apiGet(`/user/${userId}`).then(setProfile),
+			apiGet(`/user-skills/${userId}`).then(setSkills),
+			apiGet(`/ratings/${userId}`).then(setRatings),
+		]).finally(() => setDataLoading(false));
 	}, [userId]);
 
-	if (loading || !user || !profile) return null;
+	if (loading || dataLoading) {
+		return (
+			<div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+				<Loader />
+			</div>
+		);
+	}
+
+	if (!user) return null;
+	if (!profile) return null;
 
 	const isOwnProfile = profile.user_id === user.user_id;
 
@@ -68,8 +82,13 @@ export default function UserProfilePage() {
 					) : (
 						<div className="flex flex-col gap-2">
 							{skills.map((s) => (
-								<div key={s.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-									<span className="text-sm font-medium text-slate-700">{s.skill_name}</span>
+								<div
+									key={s.id}
+									className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
+								>
+									<span className="text-sm font-medium text-slate-700">
+										{s.skill_name}
+									</span>
 									<span className="badge badge-teal">{s.proficiency_level}</span>
 								</div>
 							))}
@@ -87,9 +106,12 @@ export default function UserProfilePage() {
 							{ratings.map((r) => (
 								<div key={r.rating_id} className="rounded-lg bg-slate-50 p-3">
 									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-slate-700">{r.rater_name}</span>
+										<span className="text-sm font-medium text-slate-700">
+											{r.rater_name}
+										</span>
 										<span className="stars text-sm">
-											{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+											{"★".repeat(r.rating)}
+											{"☆".repeat(5 - r.rating)}
 										</span>
 									</div>
 									{r.review && (

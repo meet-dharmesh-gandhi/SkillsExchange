@@ -5,6 +5,7 @@ import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, FormEvent } from "react";
 import { apiPut, ApiError } from "@/lib/api";
+import Loader from "@/components/loader/Loader";
 
 export default function ProfileEditPage() {
 	const { user, loading, logout } = useAuth();
@@ -60,7 +61,15 @@ export default function ProfileEditPage() {
 		}
 	}
 
-	if (loading || !user) return null;
+	if (loading) {
+		return (
+			<div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+				<Loader />
+			</div>
+		);
+	}
+
+	if (!user) return null;
 
 	return (
 		<div className="page-container">
@@ -72,12 +81,16 @@ export default function ProfileEditPage() {
 			<div className="card mx-auto max-w-lg">
 				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 					<div>
-						<label className="mb-1 block text-xs font-medium text-slate-600">Name</label>
+						<label className="mb-1 block text-xs font-medium text-slate-600">
+							Name
+						</label>
 						<input value={name} onChange={(e) => setName(e.target.value)} required />
 					</div>
 
 					<div>
-						<label className="mb-1 block text-xs font-medium text-slate-600">Email</label>
+						<label className="mb-1 block text-xs font-medium text-slate-600">
+							Email
+						</label>
 						<input
 							type="email"
 							value={email}
