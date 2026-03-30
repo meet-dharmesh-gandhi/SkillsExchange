@@ -14,10 +14,7 @@ const initialResult: ApiResult = {
 };
 
 export default function Home() {
-	const apiBaseUrl = useMemo(
-		() => process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:9000",
-		[],
-	);
+	const apiBaseUrl = useMemo(() => "/api", []);
 
 	const [result, setResult] = useState<ApiResult>(initialResult);
 	const [loading, setLoading] = useState(false);

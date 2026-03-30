@@ -39,10 +39,10 @@ SkillsExchange connects learners and mentors through reciprocal skill swapping:
 - Skill requests with duplicate-request prevention at DB level
 - Match generation through PL/SQL procedure
 - Session lifecycle management:
-	- pending
-	- upcoming
-	- complete
-	- cancel
+    - pending
+    - upcoming
+    - complete
+    - cancel
 - Post-session rating and reviews
 - Public profile view per user (skills + reviews)
 - Basic API testing page in frontend at `/api-overview`
@@ -56,12 +56,10 @@ SkillsExchange connects learners and mentors through reciprocal skill swapping:
 - TypeScript
 - Tailwind CSS v4
 
-### Backend
+### Backend (inside Next.js)
 
-- Node.js
-- Express 5
+- Next.js App Router Route Handlers (`frontend/app/api`)
 - Oracle DB driver (`oracledb`)
-- CORS + dotenv
 
 ### Database
 
@@ -71,14 +69,14 @@ SkillsExchange connects learners and mentors through reciprocal skill swapping:
 
 ## Architecture
 
-1. Frontend calls backend REST APIs using `frontend/lib/api.ts`.
-2. Backend routes in `backend/routes/api.js` execute SQL or PL/SQL via `backend/db.js`.
+1. Frontend calls same-origin REST APIs using `frontend/lib/api.ts`.
+2. Next.js route handlers in `frontend/app/api/[...path]/route.ts` execute SQL or PL/SQL via `frontend/lib/server/db.ts`.
 3. Oracle handles:
-	 - relational data
-	 - ID generation (sequences/triggers)
-	 - business constraints (duplicate request prevention)
-	 - matching logic (procedure)
-	 - rating aggregation support (function)
+    - relational data
+    - ID generation (sequences/triggers)
+    - business constraints (duplicate request prevention)
+    - matching logic (procedure)
+    - rating aggregation support (function)
 
 Authentication is sessionless at backend level (no JWT). Frontend stores user object in localStorage (`se_user`) and restores on reload.
 
@@ -136,7 +134,9 @@ ORACLE_CONNECT_STRING=host:port/service_name
 ### Frontend (`frontend/.env.local`)
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:9000
+ORACLE_USER=your_oracle_username
+ORACLE_PASSWORD=your_oracle_password
+ORACLE_CONNECT_STRING=host:port/service_name
 ```
 
 ## Database Setup (Oracle)
@@ -168,31 +168,12 @@ Run scripts in this order:
 
 ## Backend Setup
 
-From project root:
-
-```bash
-cd backend
-npm install
-```
-
-Run in development:
-
-```bash
-npm run dev
-```
-
-Run in production mode:
-
-```bash
-npm start
-```
-
-Default backend URL: `http://localhost:9000`
+Backend runs as part of the Next.js app via route handlers in `frontend/app/api`.
 
 Health endpoint:
 
 ```http
-GET /health
+GET /api/health
 ```
 
 ## Frontend Setup
@@ -212,9 +193,11 @@ npm run dev
 
 Default frontend URL: `http://localhost:3000`
 
+Default API base URL: `http://localhost:3000/api`
+
 ## API Endpoints
 
-Base URL: `http://localhost:9000`
+Base URL: `http://localhost:3000/api`
 
 ### Auth
 
@@ -322,7 +305,7 @@ Matches are inserted with status `matched`.
 3. Add migration tooling and schema versioning.
 4. Add API validation library (for example zod/joi) for stricter payload checks.
 5. Add tests:
-	 - backend route/integration tests
-	 - frontend component and flow tests
+    - backend route/integration tests
+    - frontend component and flow tests
 6. Add pagination and sorting for list endpoints.
 7. Improve matching algorithm to avoid duplicate/redundant matches.

@@ -43,6 +43,10 @@ function ScheduleForm() {
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
+		if (!user) {
+			showToast("Please login to schedule sessions", "error");
+			return;
+		}
 		if (!matchId || !dateTime) {
 			showToast("Please select a match and date/time", "error");
 			return;
