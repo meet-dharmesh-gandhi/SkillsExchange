@@ -13,6 +13,7 @@ async function execute(sql, binds = {}, options = {}) {
 	let connection;
 
 	try {
+		oracledb.initOracleClient();
 		connection = await oracledb.getConnection(dbConfig);
 		return await connection.execute(sql, binds, {
 			autoCommit: true,
