@@ -16,7 +16,9 @@ export async function execute<T = unknown>(
 	let connection: oracledb.Connection | undefined;
 
 	try {
-		oracledb.initOracleClient();
+		if (process.env.NODE_ENV === "development") {
+			oracledb.initOracleClient();
+		}
 		connection = await oracledb.getConnection(dbConfig);
 		return await connection.execute<T>(sql, binds, {
 			autoCommit: true,
