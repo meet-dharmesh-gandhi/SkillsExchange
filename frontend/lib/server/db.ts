@@ -20,7 +20,6 @@ export async function execute<T = unknown>(
 		if (process.env.NODE_ENV === "development") {
 			oracledb.initOracleClient();
 		}
-		oracledb.thin = true;
 		connection = await oracledb.getConnection(dbConfig);
 		return await connection.execute<T>(sql, binds, {
 			autoCommit: true,
