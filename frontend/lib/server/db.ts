@@ -4,6 +4,7 @@ const dbConfig = {
 	user: process.env.ORACLE_USER,
 	password: process.env.ORACLE_PASSWORD,
 	connectString: process.env.ORACLE_CONNECT_STRING,
+	sslServerDnMatch: false,
 };
 
 export { oracledb };
@@ -19,12 +20,15 @@ export async function execute<T = unknown>(
 		if (process.env.NODE_ENV === "development") {
 			oracledb.initOracleClient();
 		}
+		oracledb.thin = true;
 		connection = await oracledb.getConnection(dbConfig);
 		return await connection.execute<T>(sql, binds, {
 			autoCommit: true,
 			outFormat: oracledb.OUT_FORMAT_OBJECT,
 			...options,
 		} as oracledb.ExecuteOptions);
+	} catch (err) {
+		console.error("execute:", err);
 	} finally {
 		if (connection) {
 			await connection.close();
